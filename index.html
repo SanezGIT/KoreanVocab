@@ -254,27 +254,68 @@
 </div>
 
 <div class="container">
-  <h1>🗣️ Korean Vocab · Audio</h1>
-  <div class="subnote">🔊 tap speaker · 🔀 shuffle</div>
+  <h1>🗣️ Korean Vocab Quiz</h1>
+  <div class="subnote">🔊 tap speaker · 🔀 shuffle questions</div>
   <div id="quiz"></div>
 </div>
 
 <script>
-  // ----- WORD LIST (50 items) -----
+  // ----- WORD LIST (50 items) with multiple acceptable answers -----
   const baseWords = [
-    ["부모님","parent"],["삼촌","uncle"],["이모","auntie"],["딸","daughter"],["아들","son"],
-    ["조카","niece nephew"],["이웃","neighbor"],["강아지","dog"],["고양이","cat"],["간호사","nurse"],
-    ["군인","soldier"],["선생님","teacher"],["학생","student"],["경찰","police"],["고모","auntie"],
-    ["치우다","to tidy"],["요리하다","to cook"],["먹다","to eat"],["닦다","to wipe"],["청소하다","to clean"],
-    ["쓸다","to sweep"],["보다","to watch"],["켜다","to switch on"],["끄다","to switch off"],["쓰다","to write"],
-    ["운전하다","to drive"],["만들다","to make"],["볶다","to fry"],["자다","to sleep"],["만나다","to meet"],
-    ["침대","bed"],["김치","kimchi"],["책상","table"],["텔레비전","tv"],["청소기","vacuum cleaner"],
-    ["선풍기","electric fan"],["난로","stove"],["주걱","spatula"],["오토바이","motorcycle"],["계란","egg"],
-    ["식당","restaurant"],["공원","park"],["집","house"],["방","room"],["영화관","cinema"],
-    ["아침","morning"],["하루","whole day"],["밤","night"],["새벽","dawn"],["주말","weekend"]
+    { k: "부모님", en: ["parent", "parents"] },
+    { k: "삼촌", en: ["uncle"] },
+    { k: "이모", en: ["auntie", "aunt"] },
+    { k: "딸", en: ["daughter"] },
+    { k: "아들", en: ["son"] },
+    { k: "조카", en: ["niece", "nephew", "niece nephew"] },
+    { k: "이웃", en: ["neighbor"] },
+    { k: "강아지", en: ["dog", "puppy"] },
+    { k: "고양이", en: ["cat"] },
+    { k: "간호사", en: ["nurse"] },
+    { k: "군인", en: ["soldier"] },
+    { k: "선생님", en: ["teacher"] },
+    { k: "학생", en: ["student"] },
+    { k: "경찰", en: ["police", "policeman", "police officer"] },
+    { k: "고모", en: ["auntie", "aunt"] },
+    { k: "치우다", en: ["to tidy"] },
+    { k: "요리하다", en: ["to cook"] },
+    { k: "먹다", en: ["to eat"] },
+    { k: "닦다", en: ["to wipe"] },
+    { k: "청소하다", en: ["to clean"] },
+    { k: "쓸다", en: ["to sweep"] },
+    { k: "보다", en: ["to watch", "to see"] },
+    { k: "켜다", en: ["to switch on", "to turn on"] },
+    { k: "끄다", en: ["to switch off", "to turn off"] },
+    { k: "쓰다", en: ["to write"] },
+    { k: "운전하다", en: ["to drive"] },
+    { k: "만들다", en: ["to make"] },
+    { k: "볶다", en: ["to fry"] },
+    { k: "자다", en: ["to sleep"] },
+    { k: "만나다", en: ["to meet"] },
+    { k: "침대", en: ["bed"] },
+    { k: "김치", en: ["kimchi"] },
+    { k: "책상", en: ["table", "desk"] },
+    { k: "텔레비전", en: ["television", "tv"] },
+    { k: "청소기", en: ["vacuum cleaner", "vacuum"] },
+    { k: "선풍기", en: ["electric fan", "fan"] },
+    { k: "난로", en: ["stove"] },
+    { k: "주걱", en: ["spatula"] },
+    { k: "오토바이", en: ["motorcycle", "motorbike"] },
+    { k: "계란", en: ["egg"] },
+    { k: "식당", en: ["restaurant"] },
+    { k: "공원", en: ["park"] },
+    { k: "집", en: ["house", "home"] },
+    { k: "방", en: ["room"] },
+    { k: "영화관", en: ["cinema", "movie theater"] },
+    { k: "아침", en: ["morning"] },
+    { k: "하루", en: ["whole day", "day"] },
+    { k: "밤", en: ["night"] },
+    { k: "새벽", en: ["dawn"] },
+    { k: "주말", en: ["weekend"] }
   ];
 
-  let words = [...baseWords];
+  // transform baseWords into flat array for rendering [korean, englishString]
+  let words = baseWords.map(item => [item.k, item.en.join(' | ')]);
 
   // ----- render quiz from current 'words' array -----
   function renderQuiz() {
@@ -358,26 +399,42 @@
     return t.toLowerCase().trim().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "").replace(/\s+/g, " ");
   }
 
-  // ----- check answers -----
+  // ----- check answers with multiple possibilities (from baseWords) -----
   function checkAnswers() {
     let score = 0;
+    // build a map: index -> array of accepted answers (from baseWords)
+    const acceptedMap = {};
+    baseWords.forEach((item, idx) => {
+      // item.en is array of acceptable answers
+      acceptedMap[idx] = item.en.map(a => normalize(a));
+    });
+
     words.forEach((w, i) => {
       const input = document.getElementById(`q${i}`);
       const answerDiv = document.getElementById(`a${i}`);
       if (!input || !answerDiv) return;
 
       const userAns = normalize(input.value);
-      const correctAns = normalize(w[1]);
+      // get accepted answers for this index (based on original order)
+      // but we need to map shuffled index to original index: words[i] corresponds to some baseWord
+      // find the baseWord by matching korean
+      const korean = w[0];
+      const baseItem = baseWords.find(item => item.k === korean);
+      if (!baseItem) return;
+
+      const accepted = baseItem.en.map(a => normalize(a));
 
       input.classList.remove('correct', 'wrong');
 
-      if (userAns === correctAns) {
+      if (accepted.includes(userAns) && userAns.length > 0) {
         score++;
         input.classList.add('correct');
         answerDiv.innerHTML = '';
       } else {
         input.classList.add('wrong');
-        answerDiv.innerHTML = `✅ Correct: <b>${w[1]}</b>`;
+        // show correct answer as a string (join with ' or ')
+        const display = baseItem.en.join(' / ');
+        answerDiv.innerHTML = `✅ Correct: <b>${display}</b>`;
       }
     });
 
