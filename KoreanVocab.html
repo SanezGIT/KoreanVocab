@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <title>Korean Vocab Quiz</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+    }
+    body {
+      background: #f4f6f8;
+      margin: 0;
+      padding: 0;
+      padding-top: 80px;
+      padding-bottom: 30px;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .top-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background: white;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+      padding: 10px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 1000;
+      gap: 8px;
+      flex-wrap: wrap;
+      backdrop-filter: blur(2px);
+      background: rgba(255,255,255,0.96);
+    }
+    #score {
+      font-size: 18px;
+      font-weight: 600;
+      color: #0f172a;
+      letter-spacing: 0.2px;
+      white-space: nowrap;
+    }
+    .btn-group {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+    .btn-submit, .btn-shuffle {
+      border: none;
+      padding: 8px 18px;
+      font-size: 16px;
+      font-weight: 500;
+      border-radius: 40px;
+      cursor: pointer;
+      transition: 0.12s;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+      touch-action: manipulation;
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .btn-submit {
+      background: #1e293b;
+      color: white;
+    }
+    .btn-submit:active {
+      background: #0f172a;
+      transform: scale(0.96);
+    }
+    .btn-shuffle {
+      background: #7c3aed;
+      color: white;
+    }
+    .btn-shuffle:active {
+      background: #5b21b6;
+      transform: scale(0.96);
+    }
+    .container {
+      max-width: 100%;
+      width: 100%;
+      background: white;
+      padding: 16px 14px 24px;
+      border-radius: 20px 20px 0 0;
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.02);
+      margin: 0 0;
+    }
+    h1 {
+      font-size: 22px;
+      font-weight: 600;
+      color: #0b1e33;
+      margin: 0 0 4px 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .subnote {
+      color: #475569;
+      background: #f1f5f9;
+      padding: 6px 14px;
+      border-radius: 40px;
+      font-size: 13px;
+      display: inline-block;
+      margin-bottom: 16px;
+    }
+    .question {
+      margin-bottom: 20px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid #eef2f6;
+    }
+    .question:last-of-type {
+      border-bottom: none;
+    }
+    .q-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .q-label {
+      font-size: 17px;
+      font-weight: 600;
+      color: #0f172a;
+      min-width: 32px;
+    }
+    .word-korean {
+      font-size: 20px;
+      font-weight: 500;
+      color: #0b1e33;
+      background: #f8fafc;
+      padding: 2px 10px 2px 8px;
+      border-radius: 30px;
+      letter-spacing: 0.2px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+    .audio-btn {
+      background: #eef2ff;
+      border: none;
+      font-size: 22px;
+      cursor: pointer;
+      padding: 6px 8px;
+      border-radius: 40px;
+      transition: 0.08s;
+      color: #2563eb;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .audio-btn:active {
+      background: #dbe7fe;
+      transform: scale(0.92);
+    }
+    .input-wrap {
+      flex: 1 1 160px;
+      min-width: 120px;
+      margin-top: 4px;
+    }
+    .input-wrap input {
+      width: 100%;
+      padding: 12px 14px;
+      font-size: 16px;
+      border: 2px solid #e2e8f0;
+      border-radius: 18px;
+      background: white;
+      transition: 0.12s;
+      outline: none;
+      -webkit-appearance: none;
+      appearance: none;
+      touch-action: manipulation;
+    }
+    .input-wrap input:focus {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+    }
+    .input-wrap input:active {
+      border-color: #3b82f6;
+    }
+    .correct {
+      border-color: #16a34a !important;
+      background: #f0fdf4 !important;
+    }
+    .wrong {
+      border-color: #dc2626 !important;
+      background: #fef2f2 !important;
+    }
+    .answer {
+      font-size: 15px;
+      margin-top: 6px;
+      padding-left: 6px;
+      color: #334155;
+      min-height: 26px;
+      line-height: 1.4;
+    }
+    .answer b {
+      color: #0f172a;
+      background: #f1f5f9;
+      padding: 2px 12px;
+      border-radius: 20px;
+      font-weight: 600;
+    }
+    .footnote {
+      margin-top: 18px;
+      color: #94a3b8;
+      font-size: 13px;
+      text-align: center;
+    }
+    @media (max-width: 480px) {
+      body { padding-top: 76px; }
+      .top-bar { padding: 8px 12px; }
+      #score { font-size: 16px; }
+      .btn-submit, .btn-shuffle { font-size: 14px; padding: 6px 14px; min-height: 40px; }
+      .container { padding: 12px 10px 20px; }
+      .q-label { font-size: 15px; min-width: 26px; }
+      .word-korean { font-size: 18px; padding: 2px 8px; }
+      .audio-btn { width: 36px; height: 36px; font-size: 20px; }
+      .input-wrap input { padding: 10px 12px; font-size: 15px; }
+    }
+    @media (max-width: 380px) {
+      .word-korean { font-size: 16px; }
+      .audio-btn { width: 32px; height: 32px; font-size: 18px; }
+      .input-wrap input { font-size: 14px; padding: 8px 10px; }
+    }
+    /* prevent zoom on input focus (iOS) */
+    input {
+      font-size: 16px !important;
+    }
+    /* better touch */
+    button, .audio-btn, .btn-submit, .btn-shuffle {
+      touch-action: manipulation;
+    }
+  </style>
+</head>
+<body>
+<div class="top-bar">
+  <div id="score">⭐ 0 / 50</div>
+  <div class="btn-group">
+    <button class="btn-shuffle" onclick="shuffleQuestions()">🔀 Shuffle</button>
+    <button class="btn-submit" onclick="checkAnswers()">✅ Submit</button>
+  </div>
+</div>
+
+<div class="container">
+  <h1>🗣️ Korean Vocab · Audio</h1>
+  <div class="subnote">🔊 tap speaker · 🔀 shuffle</div>
+  <div id="quiz"></div>
+</div>
+
+<script>
+  // ----- WORD LIST (50 items) -----
+  const baseWords = [
+    ["부모님","parent"],["삼촌","uncle"],["이모","auntie"],["딸","daughter"],["아들","son"],
+    ["조카","niece nephew"],["이웃","neighbor"],["강아지","dog"],["고양이","cat"],["간호사","nurse"],
+    ["군인","soldier"],["선생님","teacher"],["학생","student"],["경찰","police"],["고모","auntie"],
+    ["치우다","to tidy"],["요리하다","to cook"],["먹다","to eat"],["닦다","to wipe"],["청소하다","to clean"],
+    ["쓸다","to sweep"],["보다","to watch"],["켜다","to switch on"],["끄다","to switch off"],["쓰다","to write"],
+    ["운전하다","to drive"],["만들다","to make"],["볶다","to fry"],["자다","to sleep"],["만나다","to meet"],
+    ["침대","bed"],["김치","kimchi"],["책상","table"],["텔레비전","tv"],["청소기","vacuum cleaner"],
+    ["선풍기","electric fan"],["난로","stove"],["주걱","spatula"],["오토바이","motorcycle"],["계란","egg"],
+    ["식당","restaurant"],["공원","park"],["집","house"],["방","room"],["영화관","cinema"],
+    ["아침","morning"],["하루","whole day"],["밤","night"],["새벽","dawn"],["주말","weekend"]
+  ];
+
+  let words = [...baseWords];
+
+  // ----- render quiz from current 'words' array -----
+  function renderQuiz() {
+    const quizContainer = document.getElementById("quiz");
+    let html = '';
+
+    words.forEach((w, i) => {
+      const korean = w[0];
+      const english = w[1];
+      const qId = `q${i}`;
+      const aId = `a${i}`;
+
+      html += `
+        <div class="question" data-index="${i}">
+          <div class="q-row">
+            <span class="q-label">${i+1}.</span>
+            <span class="word-korean">
+              ${korean}
+              <button class="audio-btn" data-word="${korean}" aria-label="Listen to ${korean}" title="Listen (ko-KR)">
+                🔊
+              </button>
+            </span>
+            <div class="input-wrap">
+              <input id="${qId}" autocomplete="off" placeholder="English" inputmode="text" enterkeyhint="done">
+            </div>
+          </div>
+          <div id="${aId}" class="answer"></div>
+        </div>
+      `;
+    });
+
+    quizContainer.innerHTML = html;
+
+    // ----- attach audio events (mobile friendly) -----
+    document.querySelectorAll('.audio-btn').forEach(btn => {
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const word = this.getAttribute('data-word');
+        if (!word) return;
+
+        if (window.speechSynthesis) {
+          window.speechSynthesis.cancel();
+        }
+
+        const utterance = new SpeechSynthesisUtterance(word);
+        utterance.lang = 'ko-KR';
+        utterance.rate = 0.9;
+        utterance.pitch = 1;
+        utterance.volume = 1;
+
+        // try to get Korean voice
+        const voices = window.speechSynthesis.getVoices();
+        const koVoice = voices.find(v => v.lang.startsWith('ko'));
+        if (koVoice) utterance.voice = koVoice;
+
+        window.speechSynthesis.speak(utterance);
+      });
+    });
+
+    // update score display
+    document.getElementById('score').innerHTML = `⭐ 0 / ${words.length}`;
+  }
+
+  // ----- Shuffle (Rumble) -----
+  function shuffleQuestions() {
+    for (let i = words.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [words[i], words[j]] = [words[j], words[i]];
+    }
+    renderQuiz();
+    // clear all inputs and hints
+    document.querySelectorAll('.input-wrap input').forEach(inp => {
+      inp.classList.remove('correct', 'wrong');
+      inp.value = '';
+    });
+    document.querySelectorAll('.answer').forEach(el => el.innerHTML = '');
+  }
+
+  // ----- normalize helper -----
+  function normalize(t) {
+    return t.toLowerCase().trim().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "").replace(/\s+/g, " ");
+  }
+
+  // ----- check answers -----
+  function checkAnswers() {
+    let score = 0;
+    words.forEach((w, i) => {
+      const input = document.getElementById(`q${i}`);
+      const answerDiv = document.getElementById(`a${i}`);
+      if (!input || !answerDiv) return;
+
+      const userAns = normalize(input.value);
+      const correctAns = normalize(w[1]);
+
+      input.classList.remove('correct', 'wrong');
+
+      if (userAns === correctAns) {
+        score++;
+        input.classList.add('correct');
+        answerDiv.innerHTML = '';
+      } else {
+        input.classList.add('wrong');
+        answerDiv.innerHTML = `✅ Correct: <b>${w[1]}</b>`;
+      }
+    });
+
+    document.getElementById('score').innerHTML = `⭐ ${score} / ${words.length}`;
+  }
+
+  // preload voices (mobile)
+  if (window.speechSynthesis) {
+    window.speechSynthesis.getVoices();
+    window.speechSynthesis.onvoiceschanged = () => {
+      window.speechSynthesis.getVoices();
+    };
+    // additional trigger for some mobile browsers
+    setTimeout(() => {
+      window.speechSynthesis.getVoices();
+    }, 500);
+  }
+
+  // initial render
+  renderQuiz();
+
+  // make sure inputs stay usable on mobile
+  document.addEventListener('touchstart', function() {
+    // just to improve responsiveness
+  }, { passive: true });
+</script>
+</body>
+</html>
